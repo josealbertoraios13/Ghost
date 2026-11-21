@@ -15,34 +15,50 @@
  */
 
 class GhostGame {
-   field int direction; // the square's current direction: 
+   field int ghostDirection;
+   field int personDirection; // the square's current ghostDirection: 
                         // 0=none, 1=up, 2=down, 3=left, 4=right
    field Random random;
    field Ghost ghost;
+   field Person person;
 
    /** Constructs a new Square Game. */
    constructor GhostGame new() {
       // Creates a 30 by 30 pixels square and positions it at the top-left
       // of the screen.
       let ghost = Ghost.new(0, 0);
+      let person = Person.new(0, 0);
       let random = Random.new(19);
-      let direction = 4;  // initial state is no movement
+
+      let ghostDirection = 4;
+      let personDirection = 4;
+
       return this;
    }
 
    /** Disposes this game. */
    method void dispose() {
       do ghost.dispose();
+      do person.dispose();
       do Memory.deAlloc(this);
       return;
    }
 
-   /** Moves the square in the current direction. */
+   /** Moves the square in the current ghostDirection. */
    method void moveGhost() {
-      if (direction = 1) { do ghost.moveUp(); }
-      if (direction = 2) { do ghost.moveDown(); }
-      if (direction = 3) { do ghost.moveLeft(); }
-      if (direction = 4) { do ghost.moveRight(); }
+      if (ghostDirection = 1) { do ghost.moveUp(); }
+      if (ghostDirection = 2) { do ghost.moveDown(); }
+      if (ghostDirection = 3) { do ghost.moveLeft(); }
+      if (ghostDirection = 4) { do ghost.moveRight(); }
+      do Sys.wait(5);  // delays the next movement
+      return;
+   }
+
+   method void movePerson() {
+      if (personDirection = 1) { do person.moveUp(); }
+      if (personDirection = 2) { do person.moveDown(); }
+      if (personDirection = 3) { do person.moveLeft(); }
+      if (personDirection = 4) { do person.moveRight(); }
       do Sys.wait(5);  // delays the next movement
       return;
    }
@@ -52,27 +68,33 @@ class GhostGame {
       var char key;  // the key currently pressed by the user
       var boolean exit;
       let exit = false;
-      
+
       while (~exit) {
          // waits for a key to be pressed
          while (key = 0) {
             let key = Keyboard.keyPressed();
             do moveGhost();
+            do movePerson();
             do Sys.wait(50);
-            // let direction = random.randRange(4);
          }
          if (key = 81)  { let exit = true; }     // q key
          // if (key = 90)  { do ghost.decSize(); } // z key
          // if (key = 88)  { do ghost.incSize(); } // x key
-         if (key = 131) { let direction = 1; }   // up arrow
-         if (key = 133) { let direction = 2; }   // down arrow
-         if (key = 130) { let direction = 3; }   // left arrow
-         if (key = 132) { let direction = 4; }   // right arrow
+         if (key = 131) { let ghostDirection = 1; }   // up arrow
+         if (key = 133) { let ghostDirection = 2; }   // down arrow
+         if (key = 130) { let ghostDirection = 3; }   // left arrow
+         if (key = 132) { let ghostDirection = 4; }   // right arrow
+
+         if (key = 87) { let personDirection = 1; }   // up arrow
+         if (key = 83) { let personDirection = 2; }   // down arrow
+         if (key = 65) { let personDirection = 3; }   // left arrow
+         if (key = 68) { let personDirection = 4; } 
 
          // waits for the key to be released
          while (~(key = 0)) {
             let key = Keyboard.keyPressed();
             do moveGhost();
+            do movePerson();
             do Sys.wait(50);
          }
      } // while
