@@ -22,7 +22,7 @@ class Person{
     }
 
     method void draw(){
-        do drawPerson(y*32+(x/size));
+        do drawPerson(y*32+(x/16));
         return;
     }
 
@@ -33,41 +33,35 @@ class Person{
     }
 
     method void drawPerson(int location) {
-        var int memAddress; 
-        let memAddress = 16384+location;
-        // column 0
-        do Memory.poke(memAddress, 8160);
-        do Memory.poke(memAddress +32, 24600);
-        do Memory.poke(memAddress +64, -32764);
-        do Memory.poke(memAddress +96, 12338);
-        do Memory.poke(memAddress +128, 16394);
-        do Memory.poke(memAddress +160, 6241);
-        do Memory.poke(memAddress +192, 9361);
-        do Memory.poke(memAddress +224, 9361);
-        do Memory.poke(memAddress +256, 6241);
-        do Memory.poke(memAddress +288, 1);
-        do Memory.poke(memAddress +320, 1921);
-        do Memory.poke(memAddress +352, 2113);
-        do Memory.poke(memAddress +384, 4129);
-        do Memory.poke(memAddress +416, 4130);
-        do Memory.poke(memAddress +448, 2114);
-        do Memory.poke(memAddress +480, -30844);
-        do Memory.poke(memAddress +512, 24600);
-        do Memory.poke(memAddress +544, 8160);
-        // column 1
-        do Memory.poke(memAddress +97, 1);
-        do Memory.poke(memAddress +129, 1);
-        do Memory.poke(memAddress +161, 2);
-        do Memory.poke(memAddress +193, 2);
-        do Memory.poke(memAddress +225, 2);
-        do Memory.poke(memAddress +257, 2);
-        do Memory.poke(memAddress +289, 2);
-        do Memory.poke(memAddress +321, 2);
-        do Memory.poke(memAddress +353, 2);
-        do Memory.poke(memAddress +385, 2);
-        do Memory.poke(memAddress +417, 1);
-        do Memory.poke(memAddress +449, 1);
-        return;
+      var int memAddress; 
+      let memAddress = 16384+location;
+      // column 0
+      do Memory.poke(memAddress, 4064);
+      do Memory.poke(memAddress +32, 16376);
+      do Memory.poke(memAddress +64, 20452);
+      do Memory.poke(memAddress +96, -16390);
+      do Memory.poke(memAddress +128, -6194);
+      do Memory.poke(memAddress +160, -15481);
+      do Memory.poke(memAddress +192, -15481);
+      do Memory.poke(memAddress +224, -6193);
+      do Memory.poke(memAddress +256, -1);
+      do Memory.poke(memAddress +288, -1);
+      do Memory.poke(memAddress +320, -897);
+      do Memory.poke(memAddress +352, -1985);
+      do Memory.poke(memAddress +384, -1986);
+      do Memory.poke(memAddress +416, -1986);
+      do Memory.poke(memAddress +448, 30780);
+      do Memory.poke(memAddress +480, 15480);
+      do Memory.poke(memAddress +512, 4064);
+      // column 1
+      do Memory.poke(memAddress +161, 1);
+      do Memory.poke(memAddress +193, 1);
+      do Memory.poke(memAddress +225, 1);
+      do Memory.poke(memAddress +257, 1);
+      do Memory.poke(memAddress +289, 1);
+      do Memory.poke(memAddress +321, 1);
+      do Memory.poke(memAddress +353, 1);
+      return;
     }
 
     method void incSize() {
@@ -122,5 +116,21 @@ class Person{
          do draw();
       }
       return;
+   }
+
+   method int getLeft(){
+      return x;
+   }
+
+   method int getRight(){
+      return x + 15;
+   }
+
+   method int getTop(){
+      return y;
+   }
+
+   method int getBottom(){
+      return y + 15;
    }
 }

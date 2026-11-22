@@ -28,7 +28,7 @@ class Ghost {
 
    /** Draws the square on the screen. */
    method void draw() {
-      do drawHappyGhost(y*32+(x/size));
+      do drawHappyGhost(y*32+(x/16));
       return;
    }
 
@@ -59,8 +59,6 @@ class Ghost {
       do Memory.poke(memAddress+480, -1);
       return;
    }
-
-
 
     /** Increments the square size by 2 pixels. */
    method void incSize() {
@@ -120,5 +118,21 @@ class Ghost {
          do draw();
       }
       return;
+   }
+
+   method int getLeft(){
+      return x;
+   }
+
+   method int getRight(){
+      return x + 15;
+   }
+
+   method int getTop(){
+      return y;
+   }
+
+   method int getBottom(){
+      return y + 15;
    }
 }
