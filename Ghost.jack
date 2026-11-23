@@ -110,7 +110,7 @@ class Ghost {
          do draw();
       }
       return;
-   }48
+   }
 
    /** Moves the square right by 16 pixels. */
    method void moveRight() {
