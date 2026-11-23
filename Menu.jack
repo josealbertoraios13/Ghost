@@ -1,0 +1,6 @@
+class Menu{
+    constructor Menu new() {
+        do Screen.drawRectangle(130, 0, 143, 255);
+        return this;
+    }
+}

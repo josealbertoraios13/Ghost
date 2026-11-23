@@ -21,13 +21,14 @@ class GhostGame {
    field Random random;
    field Ghost ghost;
    field Person person;
+   field Menu menu;
 
    /** Constructs a new Square Game. */
    constructor GhostGame new() {
-      // Creates a 30 by 30 pixels square and positions it at the top-left
-      // of the screen.
-      let ghost = Ghost.new(0, 240);
-      let person = Person.new(0, 0);
+      let menu = Menu.new();
+
+      let ghost = Ghost.new(480, 0);
+      let person = Person.new(144, 0);
       let random = Random.new(19);
 
       let ghostDirection = 4;
