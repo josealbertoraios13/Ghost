@@ -101,7 +101,7 @@ class Person{
    }
 
    method void moveLeft() {
-      if (x > 15) {
+      if (x > 150) {
          do erase();
          let x = x - 16;
          do draw();
