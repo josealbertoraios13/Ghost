@@ -26,7 +26,7 @@ class GhostGame {
    constructor GhostGame new() {
       // Creates a 30 by 30 pixels square and positions it at the top-left
       // of the screen.
-      let ghost = Ghost.new(0, 0);
+      let ghost = Ghost.new(0, 240);
       let person = Person.new(0, 0);
       let random = Random.new(19);
 
@@ -63,6 +63,16 @@ class GhostGame {
       return;
    }
 
+   method boolean onCollision(){
+      var boolean overlapX, overlapY;
+
+      let overlapX = (ghost.getLeft() < (person.getRight() + 2)) & (person.getLeft() < (ghost.getRight() + 1));
+
+      let overlapY = (ghost.getTop() < (person.getBottom() + 2)) & (person.getTop() < (ghost.getBottom() + 1));
+
+      return overlapX & overlapY;
+   }
+
    /** Runs the game: handles the user's inputs and moves the square accordingly */
    method void run() {
       var char key;  // the key currently pressed by the user
@@ -70,34 +80,31 @@ class GhostGame {
       let exit = false;
 
       while (~exit) {
-         // waits for a key to be pressed
-         while (key = 0) {
-            let key = Keyboard.keyPressed();
-            do moveGhost();
-            do movePerson();
-            do Sys.wait(50);
-         }
-         if (key = 81)  { let exit = true; }     // q key
-         // if (key = 90)  { do ghost.decSize(); } // z key
-         // if (key = 88)  { do ghost.incSize(); } // x key
-         if (key = 131) { let ghostDirection = 1; }   // up arrow
-         if (key = 133) { let ghostDirection = 2; }   // down arrow
-         if (key = 130) { let ghostDirection = 3; }   // left arrow
-         if (key = 132) { let ghostDirection = 4; }   // right arrow
+         let key = Keyboard.keyPressed();
 
-         if (key = 87) { let personDirection = 1; }   // up arrow
-         if (key = 83) { let personDirection = 2; }   // down arrow
-         if (key = 65) { let personDirection = 3; }   // left arrow
-         if (key = 68) { let personDirection = 4; } 
+         if (key = 81)  { let exit = true; }          // q
 
-         // waits for the key to be released
-         while (~(key = 0)) {
-            let key = Keyboard.keyPressed();
-            do moveGhost();
-            do movePerson();
-            do Sys.wait(50);
+         if (key = 131) { let ghostDirection = 1; }   // up
+         if (key = 133) { let ghostDirection = 2; }   // down
+         if (key = 130) { let ghostDirection = 3; }   // left
+         if (key = 132) { let ghostDirection = 4; }   // right
+
+         if ((key = 87) | (key = 119)) { let personDirection = 1; }  // W/w
+         if ((key = 83) | (key = 115)) { let personDirection = 2; }  // S/s
+         if ((key = 65) | (key = 97))  { let personDirection = 3; }  // A/a
+         if ((key = 68) | (key = 100)) { let personDirection = 4; }  // D/d
+
+         do moveGhost();
+         do movePerson();
+
+         if (onCollision()) {
+            let ghostDirection = 0;
+            let personDirection = 0;
+            let exit = true;
          }
-     } // while
+
+         do Sys.wait(50);
+      }
      return;
    }
 }
