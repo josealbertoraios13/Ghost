@@ -1,0 +1,73 @@
+/**
+ * Heads-up display in the left side panel (x 0..143). The text area is Output columns 0..15
+ * (x 0..127); the black bar at x 130..143 separates the panel from the playfield.
+ * Also draws the Game Over box, centered on the playfield (x 144..511).
+ */
+class Hud {
+    /** Draws the separator bar and the static texts. Call after Screen.clearScreen(). */
+    function void drawPanel() {
+        do Screen.setColor(true);
+        do Screen.drawRectangle(130, 0, 143, 255);
+
+        do Output.moveCursor(1, 0);
+        do Output.printString("-- GHOST --");
+
+        do Output.moveCursor(13, 0);
+        do Output.printString("P1 FANTASMA");
+        do Output.moveCursor(14, 0);
+        do Output.printString("setas: mover");
+        do Output.moveCursor(15, 0);
+        do Output.printString(".: parar");
+
+        do Output.moveCursor(17, 0);
+        do Output.printString("P2 PESSOA");
+        do Output.moveCursor(18, 0);
+        do Output.printString("WASD: mover");
+        do Output.moveCursor(19, 0);
+        do Output.printString("E: parar");
+        return;
+    }
+
+    /** Clears the timer area. Call when the phase changes (3 s countdown -> 7 s round). */
+    function void clearTimer() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(0, 33, 127, 65);
+        do Screen.setColor(true);
+        return;
+    }
+
+    /** E.g. Hud.drawTimer("Prepare-se", 3) or Hud.drawTimer("Tempo", 7). Call only when secs changes. */
+    function void drawTimer(String label, int secs) {
+        do Output.moveCursor(3, 0);
+        do Output.printString(label);
+        do Output.moveCursor(5, 0);
+        do Output.printInt(secs);
+        do Output.printString("  ");         // erases leftovers (10 -> 9)
+        return;
+    }
+
+    /** loser = 1 or 2 (the player who lost). Box centered on the playfield. */
+    function void gameOver(int loser) {
+        var String msg, msg2;
+        if (loser = 2) { let msg = "Game Over - Jogador 2 perdeu"; }
+        else           { let msg = "Game Over - Jogador 1 perdeu"; }
+        let msg2 = "Reiniciando...";
+
+        // box: black border, white inside
+        do Screen.setColor(true);
+        do Screen.drawRectangle(200, 98, 455, 152);
+        do Screen.setColor(false);
+        do Screen.drawRectangle(204, 102, 451, 148);
+        do Screen.setColor(true);
+
+        // playfield spans text columns 18..63 (46 columns)
+        do Output.moveCursor(11, 18 + ((46 - msg.length()) / 2));
+        do Output.printString(msg);
+        do Output.moveCursor(12, 18 + ((46 - msg2.length()) / 2));
+        do Output.printString(msg2);
+
+        do msg.dispose();
+        do msg2.dispose();
+        return;
+    }
+}
