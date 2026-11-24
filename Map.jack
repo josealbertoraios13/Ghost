@@ -1,0 +1,112 @@
+/**
+ * Maze map. Screen layout: columns 0..8 (x 0..143) are the left side panel (Hud),
+ * columns 9..31 (x 144..511) are the playfield. 16x16 px cells, rows 0..15 (y 0..255).
+ * Panel cells are walls for collision but are never drawn here (the Hud owns that area).
+ */
+class Map {
+    static Array rows;   // 16 strings of 32 chars: '#' = wall (code 35), '.' = free
+    static Random rnd;
+
+    /** Builds the map and its random generator. Call once per match. */
+    function void init(int seed) {
+        let rows = Array.new(16);
+        let rows[0]  = "################################";
+        let rows[1]  = "##########.#.........#.#.......#";
+        let rows[2]  = "##########.#.#.###.#.#.#.#####.#";
+        let rows[3]  = "##########.#.............#...#.#";
+        let rows[4]  = "##########.#.###.###.#.###.#.#.#";
+        let rows[5]  = "##########.....#...............#";
+        let rows[6]  = "##########.#.#.#.#######.###.#.#";
+        let rows[7]  = "##########.....#.............#.#";
+        let rows[8]  = "############.#.#.#.###.#.###.#.#";
+        let rows[9]  = "##########.......#.....#.......#";
+        let rows[10] = "##########.#.#.#.###.#.#.#####.#";
+        let rows[11] = "##########.#...#.......#.......#";
+        let rows[12] = "##########.#.###.#.#.#.#####.#.#";
+        let rows[13] = "##########.........#...........#";
+        let rows[14] = "##########.....................#";
+        let rows[15] = "################################";
+        let rnd = Random.new(seed);
+        return;
+    }
+
+    /** Frees the map (call before init again, to avoid heap leaks). */
+    function void dispose() {
+        var int i;
+        var String line;
+        let i = 0;
+        while (i < 16) {
+            let line = rows[i];
+            do line.dispose();
+            let i = i + 1;
+        }
+        do rows.dispose();
+        do rnd.dispose();
+        return;
+    }
+
+    /** True if the cell is a wall, part of the side panel, or outside the screen. */
+    function boolean isWall(int col, int row) {
+        var String line;
+        if ((col < 0) | (col > 31) | (row < 0) | (row > 15)) { return true; }
+        let line = rows[row];               // Jack does not allow rows[row].charAt(...)
+        return line.charAt(col) = 35;
+    }
+
+    /** Draws the walls of the playfield (columns 9..31). Call after Screen.clearScreen(). */
+    function void draw() {
+        var int r, c;
+        var String line;
+        let r = 0;
+        while (r < 16) {
+            let line = rows[r];
+            let c = 9;
+            while (c < 32) {
+                if (line.charAt(c) = 35) { do Map.drawWall(c, r); }
+                let c = c + 1;
+            }
+            let r = r + 1;
+        }
+        return;
+    }
+
+    function void drawWall(int col, int row) {
+        var int addr, i;
+        let addr = 16384 + (row * 512) + col;   // 16 pixel rows * 32 words = 512 per cell row
+        let i = 0;
+        while (i < 16) {
+            do Memory.poke(addr + (i * 32), -1);
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** Random free cell of the playfield, encoded as row*32 + col. */
+    function int randomFreeCell() {
+        var int c, r;
+        let c = 9 + rnd.randRange(23);
+        let r = rnd.randRange(16);
+        while (Map.isWall(c, r)) {
+            let c = 9 + rnd.randRange(23);
+            let r = rnd.randRange(16);
+        }
+        return (r * 32) + c;
+    }
+
+    /** Random free cell at Manhattan distance >= minDist (in cells) from 'from'. Keep minDist <= ~12. */
+    function int randomFarCell(int from, int minDist) {
+        var int cell, d;
+        let cell = Map.randomFreeCell();
+        let d = Math.abs(Map.colOf(cell) - Map.colOf(from)) + Math.abs(Map.rowOf(cell) - Map.rowOf(from));
+        while (d < minDist) {
+            let cell = Map.randomFreeCell();
+            let d = Math.abs(Map.colOf(cell) - Map.colOf(from)) + Math.abs(Map.rowOf(cell) - Map.rowOf(from));
+        }
+        return cell;
+    }
+
+    function int colOf(int cell) { return cell & 31; }
+    function int rowOf(int cell) { return cell / 32; }
+    function int xOf(int cell)   { return (cell & 31) * 16; }   // pixel x for Ghost/Person.new
+    function int yOf(int cell)   { return (cell / 32) * 16; }   // pixel y for Ghost/Person.new
+}
