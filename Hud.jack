@@ -1,9 +1,10 @@
-class Hud {
+cclass Hud {
     constructor Hud new(){
         
         return this;
     }
 
+    /** Desenha o texto fixo no painel lateral, no caso o título e os controles dos dois jogadores. */
     function void drawPanel() {
         do Output.moveCursor(1, 3);
         do Output.printString("-- GHOST --");
@@ -24,43 +25,61 @@ class Hud {
         return;
     }
 
-    /** Clears the timer area. Call when the phase changes (3 s countdown -> 7 s round). */
+    /** Limpa a área do relógio. O Hud.drawTimer já vai fazer isso sozinho; vai precisar apenas chamar para esconder o relógio. */
     function void clearTimer() {
         do Screen.setColor(false);
-        do Screen.drawRectangle(0, 33, 127, 65);
+        do Screen.drawRectangle(0, 33, 127, 65);   // linhas de texto 3..5 do painel (x 0..127)
         do Screen.setColor(true);
         return;
     }
 
-    /** E.g. Hud.drawTimer("Prepare-se", 3) or Hud.drawTimer("Tempo", 7). Call only when secs changes. */
+    /**
+     * Desenha uma contagem regressiva no painel lateral. o rótulo (linha 3) e os segundos (linha 5),
+     * ambos a partir da coluna de texto 3, alinhados com o resto do painel. Limpe a área antes viu,
+     * então um número ou rótulo mais curto nunca deixa restos (10 -> 9, "Prepare-se" -> "Tempo").
+     * Chame só quando 'secs' mudar (uma vez por segundo), não a cada volta do laço do jogo.
+     * NÃO é para passar um texto literal aqui a cada chamada (cada chamada criaria uma String nova que
+     * nunca é reaproveitada): crie o rótulo uma vez e reutilize, como o Menu faz.
+     */
     function void drawTimer(String label, int secs) {
-        do Output.moveCursor(3, 0);
+        do Hud.clearTimer();
+        do Output.moveCursor(3, 3);
         do Output.printString(label);
-        do Output.moveCursor(5, 0);
+        do Output.moveCursor(5, 3);
         do Output.printInt(secs);
-        do Output.printString("  ");         // erases leftovers (10 -> 9)
         return;
     }
 
-    /** loser = 1 or 2 (the player who lost). Box centered on the playfield. */
+    /** Escreve s centralizado na área de jogo (colunas de texto 18..63 = 46 colunas), na linha de texto indicada. */
+    function void printCentered(String s, int row) {
+        do Output.moveCursor(row, 18 + ((46 - s.length()) / 2));
+        do Output.printString(s);
+        return;
+    }
+
+    /**
+     * loser = 1 (jogador do fantasma) ou 2 (jogador da pessoa): quem perdeu.
+     *   fantasma toca a pessoa  -> Hud.gameOver(2)
+     *   o tempo acaba           -> Hud.gameOver(1)
+     * Vai desenhar uma caixa com a mensagem, centralizada na área de jogo. A tela fica como está
+     * depois disso: quem chamou espera (Sys.wait) e então reinicia a partida.
+     */
     function void gameOver(int loser) {
         var String msg, msg2;
         if (loser = 2) { let msg = "Game Over - Jogador 2 perdeu"; }
         else           { let msg = "Game Over - Jogador 1 perdeu"; }
         let msg2 = "Reiniciando...";
 
-        // box: black border, white inside
+        // caixa (borda preta, interior branco), centralizada na área de jogo (x 144..511)
+        // e nas duas linhas de texto (linhas 11 e 12 = y 121..142)
         do Screen.setColor(true);
-        do Screen.drawRectangle(200, 98, 455, 152);
+        do Screen.drawRectangle(200, 106, 455, 157);
         do Screen.setColor(false);
-        do Screen.drawRectangle(204, 102, 451, 148);
+        do Screen.drawRectangle(204, 110, 451, 153);
         do Screen.setColor(true);
 
-        // playfield spans text columns 18..63 (46 columns)
-        do Output.moveCursor(11, 18 + ((46 - msg.length()) / 2));
-        do Output.printString(msg);
-        do Output.moveCursor(12, 18 + ((46 - msg2.length()) / 2));
-        do Output.printString(msg2);
+        do Hud.printCentered(msg, 11);
+        do Hud.printCentered(msg2, 12);
 
         do msg.dispose();
         do msg2.dispose();

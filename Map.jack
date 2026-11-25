@@ -1,59 +1,72 @@
 /**
- * Maze map. Screen layout: columns 0..8 (x 0..143) are the left side panel (Hud),
- * columns 9..31 (x 144..511) are the playfield. 16x16 px cells, rows 0..15 (y 0..255).
- * Panel cells are walls for collision but are never drawn here (the Hud owns that area).
+ * Mapa do labirinto. Layout da tela: as colunas 0..8 (x 0..143) são o painel lateral (Hud) e
+ * as colunas 9..31 (x 144..511) são a área de jogo. Células de 16x16 px, linhas 0..15 (y 0..255).
+ * As células do painel contam como parede na colisão, mas nunca são desenhadas aqui (a área é do Hud).
  */
 class Map {
-    static Array rows;   // 16 strings of 32 chars: '#' = wall (code 35), '.' = free
+    static Array rows;   // 16 strings de 32 caracteres: '#' = parede (código 35), '.' = livre
     static Random rnd;
+    static boolean built;   // verdadeiro depois que as linhas foram criadas (elas são criadas só uma vez)
 
-    /** Builds the map and its random generator. Call once per match. */
+    /**
+     * Vai preparar o mapa para uma partida. Chame no início de cada partida, com uma semente nova
+     * (veja nextSeed) para que as posições mudem. As linhas do labirinto são criadas só na
+     * Pirmeira chamada e reaproveitadas depois; o que é trocado a cada vez é o gerador aleatório.
+     */
     function void init(int seed) {
-        let rows = Array.new(16);
-        let rows[0]  = "################################";
-        let rows[1]  = "##########.#.........#.#.......#";
-        let rows[2]  = "##########.#.#.###.#.#.#.#####.#";
-        let rows[3]  = "##########.#.............#...#.#";
-        let rows[4]  = "##########.#.###.###.#.###.#.#.#";
-        let rows[5]  = "##########.....#...............#";
-        let rows[6]  = "##########.#.#.#.#######.###.#.#";
-        let rows[7]  = "##########.....#.............#.#";
-        let rows[8]  = "############.#.#.#.###.#.###.#.#";
-        let rows[9]  = "##########.......#.....#.......#";
-        let rows[10] = "##########.#.#.#.###.#.#.#####.#";
-        let rows[11] = "##########.#.#.#.......#.......#";
-        let rows[12] = "##########...#...###.#.....#.#.#";
-        let rows[13] = "##########.#####..#..#######.#.#";
-        let rows[14] = "##########.....................#";
-        let rows[15] = "################################";
+        if (built) {
+            do rnd.dispose();
+        } else {
+            let rows = Array.new(16);
+            let rows[0]  = "################################";
+            let rows[1]  = "##########.#.........#.#.......#";
+            let rows[2]  = "##########.#.#.###.#.#.#.#####.#";
+            let rows[3]  = "##########.#.............#...#.#";
+            let rows[4]  = "##########.#.###.###.#.###.#.#.#";
+            let rows[5]  = "##########.....#...............#";
+            let rows[6]  = "##########.#.#.#.#######.###.#.#";
+            let rows[7]  = "##########.....#.............#.#";
+            let rows[8]  = "############.#.#.#.###.#.###.#.#";
+            let rows[9]  = "##########.......#.....#.......#";
+            let rows[10] = "##########.#.#.#.###.#.#.#####.#";
+            let rows[11] = "##########.#.#.#.......#.......#";
+            let rows[12] = "##########...#...###.#.....#.#.#";
+            let rows[13] = "##########.#####..#..#######.#.#";
+            let rows[14] = "##########.....................#";
+            let rows[15] = "################################";
+            let built = true;
+        }
         let rnd = Random.new(seed);
         return;
     }
 
-    /** Frees the map (call before init again, to avoid heap leaks). */
+    /** Libera as linhas e o gerador. Normalmente não precisa: init() reaproveita as linhas. */
     function void dispose() {
         var int i;
         var String line;
-        let i = 0;
-        while (i < 16) {
-            let line = rows[i];
-            do line.dispose();
-            let i = i + 1;
+        if (built) {
+            let i = 0;
+            while (i < 16) {
+                let line = rows[i];
+                do line.dispose();
+                let i = i + 1;
+            }
+            do rows.dispose();
+            do rnd.dispose();
+            let built = false;
         }
-        do rows.dispose();
-        do rnd.dispose();
         return;
     }
 
-    /** True if the cell is a wall, part of the side panel, or outside the screen. */
+    /** Verifica se a célula é parede, faz parte do painel lateral ou está fora da tela. */
     function boolean isWall(int col, int row) {
         var String line;
         if ((col < 0) | (col > 31) | (row < 0) | (row > 15)) { return true; }
-        let line = rows[row];               // Jack does not allow rows[row].charAt(...)
+        let line = rows[row];               // Jack não permite rows[row].charAt(...)
         return line.charAt(col) = 35;
     }
 
-    /** Draws the walls of the playfield (columns 9..31). Call after Screen.clearScreen(). */
+    /** Desenha as paredes da área de jogo (colunas 9..31). É para chamar depois de Screen.clearScreen(). */
     function void draw() {
         var int r, c;
         var String line;
@@ -72,7 +85,7 @@ class Map {
 
     function void drawWall(int col, int row) {
         var int addr, i;
-        let addr = 16384 + (row * 512) + col;   // 16 pixel rows * 32 words = 512 per cell row
+        let addr = 16384 + (row * 512) + col;   // 16 linhas de pixels * 32 palavras = 512 por linha de células
         let i = 0;
         while (i < 16) {
             do Memory.poke(addr + (i * 32), -1);
@@ -81,32 +94,58 @@ class Map {
         return;
     }
 
-    /** Random free cell of the playfield, encoded as row*32 + col. */
+    /**
+     * Célula livre aleatória da área de jogo (nunca parede, nunca o painel lateral),
+     * codificada como linha*32 + coluna. Tem que usar colOf/rowOf/xOf/yOf para decodificar.
+     */
     function int randomFreeCell() {
         var int c, r;
-        let c = 9 + rnd.randRange(23);
-        let r = rnd.randRange(16);
+        // randRange(n) devolve 0..n (inclusive): colunas 9..31 e linhas 0..15
+        let c = 9 + rnd.randRange(22);
+        let r = rnd.randRange(15);
         while (Map.isWall(c, r)) {
-            let c = 9 + rnd.randRange(23);
-            let r = rnd.randRange(16);
+            let c = 9 + rnd.randRange(22);
+            let r = rnd.randRange(15);
         }
         return (r * 32) + c;
     }
 
-    /** Random free cell at Manhattan distance >= minDist (in cells) from 'from'. Keep minDist <= ~12. */
+    /** Distância de Manhattan, em células, entre duas células codificadas. */
+    function int distance(int cellA, int cellB) {
+        return Math.abs(Map.colOf(cellA) - Map.colOf(cellB)) + Math.abs(Map.rowOf(cellA) - Map.rowOf(cellB));
+    }
+
+    /**
+     * Célula livre aleatória a uma distância de Manhattan >= minDist (em células) de 'from', e
+     * nunca a mesma célula. Se não achar uma em 40 tentativas, diminui minDist em 1, então
+     * sempre termina.
+     */
     function int randomFarCell(int from, int minDist) {
-        var int cell, d;
+        var int cell, tries;
+        if (minDist < 1) { let minDist = 1; }     // 0 permitiria a mesma célula
+        let tries = 0;
         let cell = Map.randomFreeCell();
-        let d = Math.abs(Map.colOf(cell) - Map.colOf(from)) + Math.abs(Map.rowOf(cell) - Map.rowOf(from));
-        while (d < minDist) {
+        while (Map.distance(cell, from) < minDist) {
+            let tries = tries + 1;
+            if ((tries > 40) & (minDist > 1)) {
+                let minDist = minDist - 1;
+                let tries = 0;
+            }
             let cell = Map.randomFreeCell();
-            let d = Math.abs(Map.colOf(cell) - Map.colOf(from)) + Math.abs(Map.rowOf(cell) - Map.rowOf(from));
         }
         return cell;
     }
 
+    /**
+     * Uma semente nova para a PRÓXIMA partida, para que cada reinício tenha posições
+     * diferentes: chame Map.init(seed) de novo com esse valor.
+     */
+    function int nextSeed() {
+        return rnd.rand();
+    }
+
     function int colOf(int cell) { return cell & 31; }
     function int rowOf(int cell) { return cell / 32; }
-    function int xOf(int cell)   { return (cell & 31) * 16; }   // pixel x for Ghost/Person.new
-    function int yOf(int cell)   { return (cell / 32) * 16; }   // pixel y for Ghost/Person.new
+    function int xOf(int cell)   { return (cell & 31) * 16; }   // x em pixels, para Ghost/Person.new
+    function int yOf(int cell)   { return (cell / 32) * 16; }   // y em pixels, para Ghost/Person.new
 }
