@@ -19,16 +19,34 @@ class GhostGame {
    field int personDirection; // the square's current ghostDirection: 
                         // 0=none, 1=up, 2=down, 3=left, 4=right
    field Random random;
+
+   field Menu menu;
+
    field Ghost ghost;
    field Person person;
-   field Menu menu;
+
+   field int gX, gY, pX, pY; 
+   field int cellG, cellP;
+
 
    /** Constructs a new Square Game. */
    constructor GhostGame new() {
       let menu = Menu.new();
 
-      let ghost = Ghost.new(480, 0);
-      let person = Person.new(144, 0);
+      do Map.init(19);
+      do Map.draw();
+
+      let cellG = Map.randomFreeCell();
+      let cellP = Map.randomFreeCell();
+      
+      let gX = Map.xOf(cellG);
+      let gY = Map.yOf(cellG);
+
+      let pX = Map.xOf(cellP);
+      let pY = Map.yOf(cellP);
+
+      let ghost = Ghost.new(gX, gY);
+      let person = Person.new(pX, pY);
       let random = Random.new(19);
 
       let ghostDirection = 4;
@@ -65,13 +83,20 @@ class GhostGame {
    }
 
    method boolean onCollision(){
-      var boolean overlapX, overlapY;
+      var boolean touchX, touchY;
 
-      let overlapX = (ghost.getLeft() < (person.getRight() + 2)) & (person.getLeft() < (ghost.getRight() + 1));
+      let touchX =
+         ((ghost.getLeft() < (person.getRight() + 1)) |
+            (ghost.getLeft() = (person.getRight() + 1))) &
+         ((person.getLeft() < (ghost.getRight() + 1)) |
+            (person.getLeft() = (ghost.getRight() + 1)));
 
-      let overlapY = (ghost.getTop() < (person.getBottom() + 2)) & (person.getTop() < (ghost.getBottom() + 1));
-
-      return overlapX & overlapY;
+      let touchY =
+         ((ghost.getTop() < (person.getBottom() + 1)) |
+            (ghost.getTop() = (person.getBottom() + 1))) &
+         ((person.getTop() < (ghost.getBottom() + 1)) |
+            (person.getTop() = (ghost.getBottom() + 1)));
+         return touchX & touchY;
    }
 
    /** Runs the game: handles the user's inputs and moves the square accordingly */
@@ -85,15 +110,8 @@ class GhostGame {
 
          if (key = 81)  { let exit = true; }          // q
 
-         if (key = 131) { let ghostDirection = 1; }   // up
-         if (key = 133) { let ghostDirection = 2; }   // down
-         if (key = 130) { let ghostDirection = 3; }   // left
-         if (key = 132) { let ghostDirection = 4; }   // right
-
-         if ((key = 87) | (key = 119)) { let personDirection = 1; }  // W/w
-         if ((key = 83) | (key = 115)) { let personDirection = 2; }  // S/s
-         if ((key = 65) | (key = 97))  { let personDirection = 3; }  // A/a
-         if ((key = 68) | (key = 100)) { let personDirection = 4; }  // D/d
+         do ghostInputs(key);
+         do personInputs(key);
 
          do moveGhost();
          do movePerson();
@@ -101,12 +119,39 @@ class GhostGame {
          if (onCollision()) {
             let ghostDirection = 0;
             let personDirection = 0;
+
+            do Hud.gameOver(2);
+
             let exit = true;
          }
 
          do Sys.wait(50);
       }
      return;
+   }
+
+   method void personInputs(char key){
+      let key = Keyboard.keyPressed();
+
+      if ((key = 87) | (key = 119)) { let personDirection = 1; }  // W/w
+      if ((key = 83) | (key = 115)) { let personDirection = 2; }  // S/s
+      if ((key = 65) | (key = 97))  { let personDirection = 3; }  // A/a
+      if ((key = 68) | (key = 100)) { let personDirection = 4; }  // D/d
+
+      if ((key = 69) | (key = 101)) { let personDirection = 0; }  // E/e to stop
+      
+      return;
+   }
+
+   method void ghostInputs(char key){
+      if (key = 131) { let ghostDirection = 1; }   // up
+      if (key = 133) { let ghostDirection = 2; }   // down
+      if (key = 130) { let ghostDirection = 3; }   // left
+      if (key = 132) { let ghostDirection = 4; }   // right
+
+      if (key = 46) { let ghostDirection = 0; }   // . to stop
+
+      return;
    }
 }
 
