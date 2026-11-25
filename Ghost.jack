@@ -5,7 +5,6 @@
 
 /** Implements a graphical square. */
 class Ghost {
-
    field int x, y; // screen location of the square's top-left corner
    field int size; // length of this square, in pixels
    field int memAddress;
@@ -14,9 +13,13 @@ class Ghost {
    constructor Ghost new(int Ax, int Ay) {
       let x = Ax;
       let y = Ay;
+
       let size = 16;
+
       let memAddress = 0;
+
       do draw();
+
       return this;
    }
 
@@ -35,7 +38,7 @@ class Ghost {
    /** Erases the square from the screen. */
    method void erase() {
       do Screen.setColor(false);
-      do Screen.drawRectangle(x, y, x + size, y + size);
+      do Screen.drawRectangle(x, y, x + size - 1, y + size - 1);
       return;
    }
 
@@ -82,7 +85,7 @@ class Ghost {
 
    /** Moves the ghost up by 16 pixels. */
    method void moveUp() {
-      if (y > 15) {
+      if (~checkCollisionWall(x, y - 16)) {
          do erase();
          let y = y - 16;
          do draw();
@@ -92,7 +95,7 @@ class Ghost {
 
    /** Moves the square down by 16 pixels. */
    method void moveDown() {
-      if ((y + size) < 256) {
+      if (~checkCollisionWall(x, y + 16)) {
          do erase();
          let y = y + 16;
          do draw();
@@ -102,7 +105,7 @@ class Ghost {
 
    /** Moves the ghost left by 16 pixels. */
    method void moveLeft() {
-      if (x > 150) {
+      if (~checkCollisionWall(x - 16, y)) {
          do erase();
          let x = x - 16;
          do draw();
@@ -112,12 +115,27 @@ class Ghost {
 
    /** Moves the square right by 16 pixels. */
    method void moveRight() {
-      if ((x + size) < 512) {
+      if (~checkCollisionWall(x + 16, y)) {
          do erase();
          let x = x + 16;
          do draw();
       }
       return;
+   }
+
+   method boolean checkCollisionWall(int nextX, int nextY){
+      var int left, right, top, bottom;
+
+      let left = nextX / 16;
+      let right = (nextX + size - 1) / 16;  
+      let top = nextY / 16;
+      let bottom = (nextY + size - 1) / 16;
+
+      if(Map.isWall(left, top) | Map.isWall(right, top) | Map.isWall(left, bottom) | Map.isWall(right, bottom)){
+         return true;
+      }
+
+      return false;
    }
 
    method int getLeft(){

@@ -1,6 +1,17 @@
 class Menu{
     constructor Menu new() {
-        do Screen.drawRectangle(130, 0, 143, 255);
+        do Hud.drawPanel();      
+        do Screen.drawRectangle(142, 0, 143, 255);
         return this;
+    }
+
+    method void startInTime(){
+        do Hud.drawTimer("To Start", 3);
+        return;
+    }
+
+    method void inGameTimer(){
+        do Hud.drawTimer("To GameOver", 60);
+        return;
     }
 }

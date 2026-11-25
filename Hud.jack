@@ -1,29 +1,25 @@
-/**
- * Heads-up display in the left side panel (x 0..143). The text area is Output columns 0..15
- * (x 0..127); the black bar at x 130..143 separates the panel from the playfield.
- * Also draws the Game Over box, centered on the playfield (x 144..511).
- */
 class Hud {
-    /** Draws the separator bar and the static texts. Call after Screen.clearScreen(). */
-    function void drawPanel() {
-        do Screen.setColor(true);
-        do Screen.drawRectangle(130, 0, 143, 255);
+    constructor Hud new(){
+        
+        return this;
+    }
 
-        do Output.moveCursor(1, 0);
+    function void drawPanel() {
+        do Output.moveCursor(1, 3);
         do Output.printString("-- GHOST --");
 
-        do Output.moveCursor(13, 0);
+        do Output.moveCursor(15, 3);
         do Output.printString("P1 FANTASMA");
-        do Output.moveCursor(14, 0);
+        do Output.moveCursor(16, 3);
         do Output.printString("setas: mover");
-        do Output.moveCursor(15, 0);
+        do Output.moveCursor(17, 3);
         do Output.printString(".: parar");
 
-        do Output.moveCursor(17, 0);
+        do Output.moveCursor(19, 3);
         do Output.printString("P2 PESSOA");
-        do Output.moveCursor(18, 0);
+        do Output.moveCursor(20, 3);
         do Output.printString("WASD: mover");
-        do Output.moveCursor(19, 0);
+        do Output.moveCursor(21, 3);
         do Output.printString("E: parar");
         return;
     }

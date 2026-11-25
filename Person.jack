@@ -28,41 +28,32 @@ class Person{
 
     method void erase() {
         do Screen.setColor(false);
-        do Screen.drawRectangle(x, y, x + size, y + size);
+        do Screen.drawRectangle(x, y, x + size - 1, y + size - 1);
         return;
     }
 
-    method void drawPerson(int location) {
+   method void drawPerson(int location) {
       var int memAddress; 
       let memAddress = 16384+location;
-      // column 0
-      do Memory.poke(memAddress, 4064);
-      do Memory.poke(memAddress +32, 16376);
-      do Memory.poke(memAddress +64, 20452);
-      do Memory.poke(memAddress +96, -16390);
-      do Memory.poke(memAddress +128, -6194);
-      do Memory.poke(memAddress +160, -15481);
-      do Memory.poke(memAddress +192, -15481);
-      do Memory.poke(memAddress +224, -6193);
+
+      do Memory.poke(memAddress, 4080);
+      do Memory.poke(memAddress +32, 16380);
+      do Memory.poke(memAddress +64, 26598);
+      do Memory.poke(memAddress +96, 24570);
+      do Memory.poke(memAddress +128, -3121);
+      do Memory.poke(memAddress +160, -7801);
+      do Memory.poke(memAddress +192, -7801);
+      do Memory.poke(memAddress +224, -3121);
       do Memory.poke(memAddress +256, -1);
-      do Memory.poke(memAddress +288, -1);
-      do Memory.poke(memAddress +320, -897);
-      do Memory.poke(memAddress +352, -1985);
-      do Memory.poke(memAddress +384, -1986);
-      do Memory.poke(memAddress +416, -1986);
-      do Memory.poke(memAddress +448, 30780);
-      do Memory.poke(memAddress +480, 15480);
-      do Memory.poke(memAddress +512, 4064);
-      // column 1
-      do Memory.poke(memAddress +161, 1);
-      do Memory.poke(memAddress +193, 1);
-      do Memory.poke(memAddress +225, 1);
-      do Memory.poke(memAddress +257, 1);
-      do Memory.poke(memAddress +289, 1);
-      do Memory.poke(memAddress +321, 1);
-      do Memory.poke(memAddress +353, 1);
+      do Memory.poke(memAddress +288, -961);
+      do Memory.poke(memAddress +320, -961);
+      do Memory.poke(memAddress +352, -961);
+      do Memory.poke(memAddress +384, 31806);
+      do Memory.poke(memAddress +416, 31806);
+      do Memory.poke(memAddress +448, 15996);
+      do Memory.poke(memAddress +480, 4080);
       return;
-    }
+   }
 
     method void incSize() {
       if (((y + size) < 254) & ((x + size) < 510)) {
@@ -82,8 +73,9 @@ class Person{
       return;
    }
 
+     /** Moves the ghost up by 16 pixels. */
    method void moveUp() {
-      if (y > 15) {
+      if (~checkCollisionWall(x, y - 16)) {
          do erase();
          let y = y - 16;
          do draw();
@@ -91,8 +83,9 @@ class Person{
       return;
    }
 
+   /** Moves the square down by 16 pixels. */
    method void moveDown() {
-      if ((y + size) < 256) {
+      if (~checkCollisionWall(x, y + 16)) {
          do erase();
          let y = y + 16;
          do draw();
@@ -100,8 +93,9 @@ class Person{
       return;
    }
 
+   /** Moves the ghost left by 16 pixels. */
    method void moveLeft() {
-      if (x > 150) {
+      if (~checkCollisionWall(x - 16, y)) {
          do erase();
          let x = x - 16;
          do draw();
@@ -109,13 +103,29 @@ class Person{
       return;
    }
 
+   /** Moves the square right by 16 pixels. */
    method void moveRight() {
-      if ((x + size) < 512) {
+      if (~checkCollisionWall(x + 16, y)) {
          do erase();
          let x = x + 16;
          do draw();
       }
       return;
+   }
+
+   method boolean checkCollisionWall(int nextX, int nextY){
+      var int left, right, top, bottom;
+
+      let left = nextX / 16;
+      let right = (nextX + size - 1) / 16;  
+      let top = nextY / 16;
+      let bottom = (nextY + size - 1) / 16;
+
+      if(Map.isWall(left, top) | Map.isWall(right, top) | Map.isWall(left, bottom) | Map.isWall(right, bottom)){
+         return true;
+      }
+
+      return false;
    }
 
    method int getLeft(){
