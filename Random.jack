@@ -1,89 +1,63 @@
 // https://github.com/xctom/Nand2Tetris/blob/master/projects/09/PigDice/Random.jack
 
 /**
-Reference: http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/Random-number-generator-for-hack-cpu-td4025503.html#a4025511
+Referência: http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/Random-number-generator-for-hack-cpu-td4025503.html#a4025511
 
-There is no random generator in Jack
-So we need to generate pseudo random number by ourself
-This class is quite simple random number generator
-
-Improvement: let the number be more random by adding shift number
+/**
+ * a mesma semente continua gerando a mesma sequência (útil para depurar uma partida).
 **/
 
 class Random {
-    field int seed; //random seed
-    field int calledTime;
+    field int seed; // estado do gerador, sempre em 0..32767
 
+    /** Cria um gerador. Sementes diferentes geram sequências diferentes. */
     constructor Random new(int seedIn) {
-
-        let seed = seedIn;
-        let seed = rand();
-        let calledTime = 0;
-
+        let seed = seedIn & 32767;   // ignora o bit de sinal
+        do addCallTime(3);           // aquecimento: uma semente pequena não deve gerar um primeiro número pequeno
         return this;
     }
 
+    /** devolve um número aleatório no intervalo 0..32767 */
     method int rand() {
-        /** return a random number in the range 0..32767 */
-
-        let seed = seed + 20251;
-
-        if (seed < 0) {
-            let seed = seed - 32767 - 1;
-        }
-
+        // Math.multiply guarda só os 16 bits baixos, então o "& 32767" dá o resultado módulo 32768
+        let seed = ((seed * 9493) + 13849) & 32767;
         return seed;
     }
 
+    /** devolve um número aleatório em 0..range (os dois extremos incluídos) */
     method int randRange(int range) {
-        /** return a random number in the range 0..range */
-        var int mask;
+        var int mask;   // menor 2^k - 1 que seja >= range
+        var int div;    // 2^(15-k): descarta os bits baixos de rand(), mantendo só os k bits mais altos
         var int ret;
 
         let mask = 1;
+        let div = 16384;
         while (mask < range) {
-            let mask = mask * 2 + 1;
+            let mask = (mask * 2) + 1;
+            let div = div / 2;
         }
 
-        let ret = rand() & mask;
-        let calledTime = calledTime + 1;
-
+        // amostragem por rejeição, acaba sorteando de novo enquanto o número estiver fora de 0..range (mantém a distribuição uniforme)
+        let ret = rand() / div;
         while (ret > range) {
-            let ret = rand() & mask;
-            let calledTime = calledTime + 1;
-            let ret = ret & getShift();
+            let ret = rand() / div;
         }
 
         return ret;
     }
 
-    //get new shift number according to called times
-    method int getShift() {
-        var int temp;
-
-        let calledTime = calledTime + 1;
-        let temp = calledTime;
-        
-        while(temp > 9){
-
-            let temp = temp - 9;
-
+    /** Avança o gerador 'times' passos (embaralhando a sequência). */
+    method void addCallTime(int times) {
+        while (times > 0) {
+            do rand();
+            let times = times - 1;
         }
-
-        return temp;
+        return;
     }
 
-    //dispose the Oject
+    // libera a memória do objeto
     method void dispose(){
         do Memory.deAlloc(this);
         return;
     }
-
-    method void addCallTime(int times){
-
-        let calledTime = calledTime + times;
-        return;
-
-    }
-
 }
