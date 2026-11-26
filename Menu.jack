@@ -5,13 +5,4 @@ class Menu{
         return this;
     }
 
-    method void startInTime(){
-        do Hud.drawTimer("To Start", 3);
-        return;
-    }
-
-    method void inGameTimer(){
-        do Hud.drawTimer("To GameOver", 60);
-        return;
-    }
 }

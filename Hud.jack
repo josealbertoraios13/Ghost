@@ -1,7 +1,14 @@
-cclass Hud {
-    constructor Hud new(){
-        
-        return this;
+class Hud {
+    static String timerLabel;
+    
+    function void init() {
+        let timerLabel = "TIMER:";
+        return;
+    }
+
+    function void dispose(){
+        do timerLabel.dispose();
+        return;
     }
 
     /** Desenha o texto fixo no painel lateral, no caso o título e os controles dos dois jogadores. */
@@ -41,11 +48,14 @@ cclass Hud {
      * NÃO é para passar um texto literal aqui a cada chamada (cada chamada criaria uma String nova que
      * nunca é reaproveitada): crie o rótulo uma vez e reutilize, como o Menu faz.
      */
+
     function void drawTimer(String label, int secs) {
         do Hud.clearTimer();
         do Output.moveCursor(3, 3);
         do Output.printString(label);
         do Output.moveCursor(5, 3);
+        do Output.printString(timerLabel);
+        do Output.moveCursor(5, 10);
         do Output.printInt(secs);
         return;
     }
@@ -66,8 +76,8 @@ cclass Hud {
      */
     function void gameOver(int loser) {
         var String msg, msg2;
-        if (loser = 2) { let msg = "Game Over - Jogador 2 perdeu"; }
-        else           { let msg = "Game Over - Jogador 1 perdeu"; }
+        if (loser = 2) { let msg = "Game Over - Fantasma Venceu!"; }
+        else           { let msg = "Game Over - Pessoa Venceu!"; }
         let msg2 = "Reiniciando...";
 
         // caixa (borda preta, interior branco), centralizada na área de jogo (x 144..511)
@@ -83,6 +93,15 @@ cclass Hud {
 
         do msg.dispose();
         do msg2.dispose();
+
+        return;
+    }
+
+    function void clearGameOver() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(200, 106, 455, 157);
+        do Screen.setColor(true);
+        do Map.draw();
         return;
     }
 }

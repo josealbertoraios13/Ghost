@@ -15,6 +15,14 @@
  */
 
 class GhostGame {
+   field boolean exit;
+
+   field String playLabel;
+   field String startLabel;
+
+   field int playableTime;
+   field int elapsedTime;
+
    field int ghostDirection;
    field int personDirection; // the square's current ghostDirection: 
                         // 0=none, 1=up, 2=down, 3=left, 4=right
@@ -28,14 +36,24 @@ class GhostGame {
    field int gX, gY, pX, pY; 
    field int cellG, cellP;
 
-
    /** Constructs a new Square Game. */
    constructor GhostGame new() {
       let menu = Menu.new();
+      
+      do Hud.init();
+      
+      let playLabel = "PLAY!";
+      let startLabel = "STARTING!";
 
       do Map.init(19);
       do Map.draw();
 
+      let random = Random.new(19);
+
+      return this;
+   }
+
+   method void initPlayers(){
       let cellG = Map.randomFreeCell();
       let cellP = Map.randomFreeCell();
       
@@ -47,18 +65,43 @@ class GhostGame {
 
       let ghost = Ghost.new(gX, gY);
       let person = Person.new(pX, pY);
-      let random = Random.new(19);
 
       let ghostDirection = 4;
       let personDirection = 4;
+      return;
+   }
 
-      return this;
+   method void restart(){
+      let ghostDirection = 0;
+      let personDirection = 0;
+
+      do Sys.wait(5000);
+
+      do ghost.erase();
+      do ghost.dispose();
+
+      do person.erase();
+      do person.dispose();
+
+      do Hud.clearGameOver();
+
+      let playableTime = 30;
+      let elapsedTime = 0;
+
+      do toStartTimer();
+      do initPlayers();
+
+      return;
    }
 
    /** Disposes this game. */
    method void dispose() {
       do ghost.dispose();
       do person.dispose();
+      do playLabel.dispose();
+      do startLabel.dispose();
+      do random.dispose();
+      do Hud.dispose();
       do Memory.deAlloc(this);
       return;
    }
@@ -102,13 +145,26 @@ class GhostGame {
    /** Runs the game: handles the user's inputs and moves the square accordingly */
    method void run() {
       var char key;  // the key currently pressed by the user
-      var boolean exit;
+      var int startTime;
+      var int currentTime;
+
       let exit = false;
+      let playableTime = 30;
+      let elapsedTime = 0;
+
+      do toStartTimer();
+
+      do initPlayers();
 
       while (~exit) {
+
          let key = Keyboard.keyPressed();
 
-         if (key = 81)  { let exit = true; }          // q
+         if (key = 140) {
+            let exit = true;
+         }
+
+         do Hud.drawTimer(playLabel, playableTime);
 
          do ghostInputs(key);
          do personInputs(key);
@@ -119,20 +175,31 @@ class GhostGame {
          if (onCollision()) {
             let ghostDirection = 0;
             let personDirection = 0;
-
             do Hud.gameOver(2);
-
-            let exit = true;
+            do restart();
          }
 
-         do Sys.wait(50);
+         do Sys.wait(10);
+
+         let elapsedTime = elapsedTime + 100;
+
+         if (elapsedTime = 1000 | elapsedTime > 1000) {
+            let elapsedTime = 0;
+            let playableTime = playableTime - 1;
+         }
+
+         if (playableTime = 0) {
+            let ghostDirection = 0;
+            let personDirection = 0;
+            do Hud.gameOver(1);
+            do restart();
+         }
       }
-     return;
+
+      return;
    }
 
    method void personInputs(char key){
-      let key = Keyboard.keyPressed();
-
       if ((key = 87) | (key = 119)) { let personDirection = 1; }  // W/w
       if ((key = 83) | (key = 115)) { let personDirection = 2; }  // S/s
       if ((key = 65) | (key = 97))  { let personDirection = 3; }  // A/a
@@ -153,7 +220,20 @@ class GhostGame {
 
       return;
    }
+
+   method void toStartTimer(){
+      var int seconds;
+
+      let seconds = 3;
+
+      while (seconds > 0) {
+         do Hud.drawTimer(startLabel, seconds);
+         do Sys.wait(1000);
+         let seconds = seconds - 1;
+      }
+
+      do Hud.drawTimer(startLabel, 0);
+
+      return;
+   }
 }
-
-
-
