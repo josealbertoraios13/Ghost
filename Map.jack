@@ -144,50 +144,6 @@ class Map {
         return (row * (Constant.MAP_LAST_COLUMN() + 1)) + col;
     }
 
-    function int manhattanDistance(int cellA, int cellB) {
-        var int horizontalDistance, verticalDistance;
-
-        let horizontalDistance = Math.abs(Map.colOf(cellA) - Map.colOf(cellB));
-        let verticalDistance = Math.abs(Map.rowOf(cellA) - Map.rowOf(cellB));
-
-        return horizontalDistance + verticalDistance;
-    }
-
-    /**
-    * Célula livre aleatória a uma distância de Manhattan >= minDistance (em células) de 'originCell',
-    * e nunca a mesma célula. Após Constant.MAX_CELL_SEARCH_ATTEMPTS() tentativas, reduz gradualmente a distância mínima
-    * até chegar a 1.
-    */
-    function int randomFarCell(int originCell, int minDistance) {
-        var int candidateCell, attemptCount, currentMinDistance;
-
-        let currentMinDistance = minDistance;
-
-        if (currentMinDistance < 1) { 
-            let currentMinDistance = 1; 
-        }     // 0 permitiria a mesma célula
-
-        let attemptCount = 0;
-        let candidateCell = Map.randomFreeCell();
-        
-        while (Map.manhattanDistance(candidateCell, originCell) < currentMinDistance) {
-            let attemptCount = attemptCount + 1;
-
-            if ((attemptCount > Constant.MAX_CELL_SEARCH_ATTEMPTS()) & (currentMinDistance > 1)) {
-                let currentMinDistance = currentMinDistance - 1;
-                let attemptCount = 0;
-            }
-
-            let candidateCell = Map.randomFreeCell();
-        }
-
-        return candidateCell;
-    }
-
-    function int nextMatchSeed() {
-        return random.rand();
-    }
-
     function int colOf(int cell) { 
         return cell & Constant.MAP_LAST_COLUMN(); 
     }

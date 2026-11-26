@@ -35,10 +35,6 @@ class Constant{
         return 35;
     }
 
-    function int MAX_CELL_SEARCH_ATTEMPTS() {
-        return 40;
-    }
-
     function int SCREEN_MEMORY_START() {
         return 16384;
     }
