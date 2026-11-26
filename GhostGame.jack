@@ -1,46 +1,21 @@
-// This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
-// File name: projects/09/Square/SquareGame.jack
-
-/**
- * Implements the Square Dance game.
- * This simple game allows the user to move a black square around
- * the screen, and change the square's size during the movement.
- * When the game starts, a square of 30 by 30 pixels is shown at the
- * top-left corner of the screen. The user controls the square as follows.
- * The 4 arrow keys are used to move the square up, down, left, and right.
- * The 'z' and 'x' keys are used, respectively, to decrement and increment
- * the square's size. The 'q' key is used to quit the game.
- */
-
 class GhostGame {
-   field boolean exit;
-
    field String playLabel;
    field String startLabel;
 
    field int playableTime;
    field int elapsedTime;
 
-   field int ghostDirection;
-   field int personDirection; // the square's current ghostDirection: 
-                        // 0=none, 1=up, 2=down, 3=left, 4=right
-   field Random random;
+   field int ghostDirection;  // the square's current ghostDirection: 
+   field int personDirection; // the square's current personDirection: 
 
    field Menu menu;
 
    field Ghost ghost;
    field Person person;
 
-   field int gX, gY, pX, pY; 
-   field int cellG, cellP;
-
    /** Constructs a new Square Game. */
    constructor GhostGame new() {
       let menu = Menu.new();
-      
-      do Hud.init();
       
       let playLabel = "PLAY!";
       let startLabel = "STARTING!";
@@ -48,12 +23,13 @@ class GhostGame {
       do Map.init(19);
       do Map.draw();
 
-      let random = Random.new(19);
-
       return this;
    }
 
    method void initPlayers(){
+      var int gX, gY, pX, pY; 
+      var int cellG, cellP;
+
       let cellG = Map.randomFreeCell();
       let cellP = Map.randomFreeCell();
       
@@ -71,6 +47,12 @@ class GhostGame {
       return;
    }
 
+   method void resetTimer() {
+      let playableTime = 30;
+      let elapsedTime = 0;
+      return;
+   }
+
    method void restart(){
       let ghostDirection = 0;
       let personDirection = 0;
@@ -85,8 +67,7 @@ class GhostGame {
 
       do Hud.clearGameOver();
 
-      let playableTime = 30;
-      let elapsedTime = 0;
+      do resetTimer();
 
       do toStartTimer();
       do initPlayers();
@@ -100,13 +81,11 @@ class GhostGame {
       do person.dispose();
       do playLabel.dispose();
       do startLabel.dispose();
-      do random.dispose();
-      do Hud.dispose();
+      do Map.dispose();
       do Memory.deAlloc(this);
       return;
    }
 
-   /** Moves the square in the current ghostDirection. */
    method void moveGhost() {
       if (ghostDirection = 1) { do ghost.moveUp(); }
       if (ghostDirection = 2) { do ghost.moveDown(); }
@@ -125,32 +104,14 @@ class GhostGame {
       return;
    }
 
-   method boolean onCollision(){
-      var boolean touchX, touchY;
-
-      let touchX =
-         ((ghost.getLeft() < (person.getRight() + 1)) |
-            (ghost.getLeft() = (person.getRight() + 1))) &
-         ((person.getLeft() < (ghost.getRight() + 1)) |
-            (person.getLeft() = (ghost.getRight() + 1)));
-
-      let touchY =
-         ((ghost.getTop() < (person.getBottom() + 1)) |
-            (ghost.getTop() = (person.getBottom() + 1))) &
-         ((person.getTop() < (ghost.getBottom() + 1)) |
-            (person.getTop() = (ghost.getBottom() + 1)));
-         return touchX & touchY;
-   }
-
    /** Runs the game: handles the user's inputs and moves the square accordingly */
    method void run() {
+      var boolean exit;
       var char key;  // the key currently pressed by the user
-      var int startTime;
-      var int currentTime;
 
       let exit = false;
-      let playableTime = 30;
-      let elapsedTime = 0;
+
+      do resetTimer();
 
       do toStartTimer();
 
@@ -172,7 +133,7 @@ class GhostGame {
          do moveGhost();
          do movePerson();
 
-         if (onCollision()) {
+         if (Collision.checkCollisionPlayers(ghost, person)) {
             let ghostDirection = 0;
             let personDirection = 0;
             do Hud.gameOver(2);

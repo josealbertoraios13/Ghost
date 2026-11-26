@@ -1,131 +1,88 @@
 class Person{
-    field int x, y;
-    field int size;
-    field int memAddress;
+   field int x, y;
+   field int size;
 
-    constructor Person new(int Ax, int Ay){
-        let x = Ax;
-        let y = Ay;
+   constructor Person new(int initialX, int initialY){
+      let x = initialX;
+      let y = initialY;
 
-        let size = 16;
+      let size = Constant.SPRITE_SIZE();
 
-        let memAddress = 0;
+      do draw();
 
-        do draw();
+      return this;
+   }
 
-        return this;
-    }
-
-    method void dispose(){
-        do Memory.deAlloc(this);
-        return;
-    }
-
-    method void draw(){
-        do drawPerson(y*32+(x/16));
-        return;
-    }
-
-    method void erase() {
-        do Screen.setColor(false);
-        do Screen.drawRectangle(x, y, x + size - 1, y + size - 1);
-        return;
-    }
-
-   method void drawPerson(int location) {
-      var int memAddress; 
-      let memAddress = 16384+location;
-
-      do Memory.poke(memAddress, 4080);
-      do Memory.poke(memAddress +32, 16380);
-      do Memory.poke(memAddress +64, 26598);
-      do Memory.poke(memAddress +96, 24570);
-      do Memory.poke(memAddress +128, -3121);
-      do Memory.poke(memAddress +160, -7801);
-      do Memory.poke(memAddress +192, -7801);
-      do Memory.poke(memAddress +224, -3121);
-      do Memory.poke(memAddress +256, -1);
-      do Memory.poke(memAddress +288, -961);
-      do Memory.poke(memAddress +320, -961);
-      do Memory.poke(memAddress +352, -961);
-      do Memory.poke(memAddress +384, 31806);
-      do Memory.poke(memAddress +416, 31806);
-      do Memory.poke(memAddress +448, 15996);
-      do Memory.poke(memAddress +480, 4080);
+   method void dispose(){
+      do Memory.deAlloc(this);
       return;
    }
 
-    method void incSize() {
-      if (((y + size) < 254) & ((x + size) < 510)) {
-         do erase();
-         let size = size + 2;
-         do draw();
-      }
+   method void draw(){
+      do drawSprite(y * Constant.SCREEN_WIDTH_IN_WORDS() + (x / size));
       return;
-    }
+   }
 
-   method void decSize() {
-      if (size > 2) {
+   method void erase() {
+      do Screen.setColor(false);
+      do Screen.drawRectangle(x, y, x + size - 1, y + size - 1);
+      return;
+   }
+
+   method void drawSprite(int screenOffset) {
+      var int spriteAddress; 
+      let spriteAddress = Constant.SCREEN_MEMORY_START() + screenOffset;
+
+      do Memory.poke(spriteAddress, 4080);
+      do Memory.poke(spriteAddress +32, 16380);
+      do Memory.poke(spriteAddress +64, 26598);
+      do Memory.poke(spriteAddress +96, 24570);
+      do Memory.poke(spriteAddress +128, -3121);
+      do Memory.poke(spriteAddress +160, -7801);
+      do Memory.poke(spriteAddress +192, -7801);
+      do Memory.poke(spriteAddress +224, -3121);
+      do Memory.poke(spriteAddress +256, -1);
+      do Memory.poke(spriteAddress +288, -961);
+      do Memory.poke(spriteAddress +320, -961);
+      do Memory.poke(spriteAddress +352, -961);
+      do Memory.poke(spriteAddress +384, 31806);
+      do Memory.poke(spriteAddress +416, 31806);
+      do Memory.poke(spriteAddress +448, 15996);
+      do Memory.poke(spriteAddress +480, 4080);
+      
+      return;
+   }
+
+   method void move(int dx, int dy) {
+      if (~Collision.checkCollisionWall(x + dx, y + dy)) {
          do erase();
-         let size = size - 2;
+
+         let x = x + dx;
+         let y = y + dy;
+
          do draw();
       }
       return;
    }
 
-     /** Moves the ghost up by 16 pixels. */
    method void moveUp() {
-      if (~checkCollisionWall(x, y - 16)) {
-         do erase();
-         let y = y - 16;
-         do draw();
-      }
+      do move(0, -Constant.MOVEMENT_STEP());
       return;
    }
 
-   /** Moves the square down by 16 pixels. */
    method void moveDown() {
-      if (~checkCollisionWall(x, y + 16)) {
-         do erase();
-         let y = y + 16;
-         do draw();
-      }
+      do move(0, Constant.MOVEMENT_STEP());
       return;
    }
 
-   /** Moves the ghost left by 16 pixels. */
    method void moveLeft() {
-      if (~checkCollisionWall(x - 16, y)) {
-         do erase();
-         let x = x - 16;
-         do draw();
-      }
+      do move(-Constant.MOVEMENT_STEP(), 0);
       return;
    }
 
-   /** Moves the square right by 16 pixels. */
    method void moveRight() {
-      if (~checkCollisionWall(x + 16, y)) {
-         do erase();
-         let x = x + 16;
-         do draw();
-      }
+      do move(Constant.MOVEMENT_STEP(), 0);
       return;
-   }
-
-   method boolean checkCollisionWall(int nextX, int nextY){
-      var int left, right, top, bottom;
-
-      let left = nextX / 16;
-      let right = (nextX + size - 1) / 16;  
-      let top = nextY / 16;
-      let bottom = (nextY + size - 1) / 16;
-
-      if(Map.isWall(left, top) | Map.isWall(right, top) | Map.isWall(left, bottom) | Map.isWall(right, bottom)){
-         return true;
-      }
-
-      return false;
    }
 
    method int getLeft(){
@@ -133,7 +90,7 @@ class Person{
    }
 
    method int getRight(){
-      return x + 15;
+      return x + size - 1;
    }
 
    method int getTop(){
@@ -141,6 +98,6 @@ class Person{
    }
 
    method int getBottom(){
-      return y + 15;
+      return y + size - 1;
    }
 }

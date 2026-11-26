@@ -55,7 +55,6 @@ class Random {
         return;
     }
 
-    // libera a memória do objeto
     method void dispose(){
         do Memory.deAlloc(this);
         return;
