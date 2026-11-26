@@ -13,12 +13,18 @@ class GhostGame {
    field Ghost ghost;
    field Person person;
 
+   field int ghostScore;
+   field int personScore;
+
    /** Constructs a new Square Game. */
    constructor GhostGame new() {
       let menu = Menu.new();
       
       let playLabel = "PLAY!";
       let startLabel = "STARTING!";
+
+      let ghostScore = 0;
+      let personScore = 0;
 
       do Map.init(19);
       do Map.draw();
@@ -66,6 +72,7 @@ class GhostGame {
       do person.dispose();
 
       do Hud.clearGameOver();
+      do Hud.drawScoreboard(ghostScore, personScore);
 
       do resetTimer();
 
@@ -111,6 +118,8 @@ class GhostGame {
 
       let exit = false;
 
+      do Hud.drawScoreboard(ghostScore, personScore);
+
       do resetTimer();
 
       do toStartTimer();
@@ -136,6 +145,8 @@ class GhostGame {
          if (Collision.checkCollisionPlayers(ghost, person)) {
             let ghostDirection = 0;
             let personDirection = 0;
+            let ghostScore = ghostScore + 1;
+
             do Hud.gameOver(2);
             do restart();
          }
@@ -152,6 +163,7 @@ class GhostGame {
          if (playableTime = 0) {
             let ghostDirection = 0;
             let personDirection = 0;
+            let personScore = personScore + 1;
             do Hud.gameOver(1);
             do restart();
          }

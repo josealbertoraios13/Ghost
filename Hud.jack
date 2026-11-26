@@ -29,12 +29,37 @@ class Hud {
 
     function void drawTimer(String gameStatus, int secs) {
         do Hud.clearTimer();
+
         do Output.moveCursor(3, 3);
         do Output.printString(gameStatus);
         do Output.moveCursor(5, 3);
         do Output.printString("TIMER: ");
         do Output.moveCursor(5, 10);
         do Output.printInt(secs);
+
+        return;
+    }
+
+    function void clearScoreboard() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(0, 66, 127, 95);
+        do Screen.setColor(true);
+
+        return;
+    }
+
+    function void drawScoreboard(int ghostScore, int personScore) {
+        do Hud.clearScoreboard();
+
+        do Output.moveCursor(9, 3);
+        do Output.printString("PLACAR");
+        do Output.moveCursor(10, 3);
+        do Output.printString("P1: ");
+        do Output.printInt(ghostScore);
+        do Output.moveCursor(11, 3);
+        do Output.printString("P2: ");
+        do Output.printInt(personScore);
+        
         return;
     }
 
