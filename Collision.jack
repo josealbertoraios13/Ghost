@@ -20,9 +20,9 @@ class Collision {
     function boolean checkCollisionPlayers(Ghost ghost, Person person){
         var boolean touchX, touchY;
 
-        let touchX = Collision.isLessOrEqual(ghost.getLeft(), person.getRight() + 1) & Collision.isLessOrEqual(person.getLeft(), ghost.getRight() + 1);
+        let touchX = Collision.isLessOrEqual(ghost.getLeft(), person.getRight()) & Collision.isLessOrEqual(person.getLeft(), ghost.getRight());
 
-        let touchY = Collision.isLessOrEqual(ghost.getTop(), person.getBottom() + 1) & Collision.isLessOrEqual(person.getTop(), ghost.getBottom() + 1);
+        let touchY = Collision.isLessOrEqual(ghost.getTop(), person.getBottom()) & Collision.isLessOrEqual(person.getTop(), ghost.getBottom());
         
         return touchX & touchY;
     }
