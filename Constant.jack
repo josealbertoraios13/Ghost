@@ -1,0 +1,61 @@
+class Constant{
+    function int SPRITE_SIZE() {
+        return 16;
+    }
+
+    function int MOVEMENT_STEP() {
+        return 16;
+    }
+    
+    function int MAP_ROWS(){
+        return 16;
+    }
+
+    function int MAP_ROW_MEMORY_SIZE() {
+        return 512;
+    }
+
+    function int MAP_PLAYABLE_MAX_OFFSET() {
+        return 22;
+    }
+
+    function int MAP_PLAYABLE_START_COLUMN() {
+        return 9;
+    }
+
+    function int MAP_LAST_COLUMN() {
+        return 31;
+    }
+
+    function int MAP_LAST_ROW() {
+        return 15;
+    }
+
+    function int WALL_CHAR() {
+        return 35;
+    }
+
+    function int SCREEN_MEMORY_START() {
+        return 16384;
+    }
+
+    function int SCREEN_WIDTH_IN_WORDS() {
+        return 32;
+    }
+    
+    function int GAME_AREA_START_COLUMN(){
+        return 18;
+    }
+
+    function int GAME_AREA_TEXT_WIDTH(){
+        return 46;
+    }
+
+    function int PLAYER1_ID(){
+        return 1;
+    }
+
+    function int PLAYER2_ID(){
+        return 2;
+    }
+}

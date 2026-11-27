@@ -4,5 +4,4 @@ class Menu{
         do Screen.drawRectangle(142, 0, 143, 255);
         return this;
     }
-
 }

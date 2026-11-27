@@ -5,19 +5,22 @@
  */
 class Map {
     static Array rows;   // 16 strings de 32 caracteres: '#' = parede (código 35), '.' = livre
-    static Random rnd;
-    static boolean built;   // verdadeiro depois que as linhas foram criadas (elas são criadas só uma vez)
+    static Random random;
+    static boolean mapWasInitialized;
 
     /**
-     * Vai preparar o mapa para uma partida. Chame no início de cada partida, com uma semente nova
-     * (veja nextSeed) para que as posições mudem. As linhas do labirinto são criadas só na
-     * Pirmeira chamada e reaproveitadas depois; o que é trocado a cada vez é o gerador aleatório.
-     */
+    * Prepara o mapa para uma partida. Deve ser chamado no início de cada partida,
+    * com uma nova semente (veja nextMatchSeed) para variar as posições.
+    * As linhas do labirinto são criadas apenas na primeira chamada e reaproveitadas
+    * nas seguintes; o gerador aleatório é recriado a cada partida.
+    */
     function void init(int seed) {
-        if (built) {
-            do rnd.dispose();
+        
+        if (mapWasInitialized) {
+            do random.dispose();
         } else {
-            let rows = Array.new(16);
+            let rows = Array.new(Constant.MAP_ROWS());
+
             let rows[0]  = "################################";
             let rows[1]  = "##########.#.........#.#.......#";
             let rows[2]  = "##########.#.#.###.#.#.#.#####.#";
@@ -34,9 +37,11 @@ class Map {
             let rows[13] = "##########.#####..#..#######.#.#";
             let rows[14] = "##########.....................#";
             let rows[15] = "################################";
-            let built = true;
+
+            let mapWasInitialized = true;
         }
-        let rnd = Random.new(seed);
+
+        let random = Random.new(seed);
         return;
     }
 
@@ -44,108 +49,114 @@ class Map {
     function void dispose() {
         var int i;
         var String line;
-        if (built) {
+
+        if (mapWasInitialized) {
             let i = 0;
-            while (i < 16) {
+
+            while (i < Constant.MAP_ROWS()) {
                 let line = rows[i];
                 do line.dispose();
                 let i = i + 1;
             }
+
             do rows.dispose();
-            do rnd.dispose();
-            let built = false;
+            do random.dispose();
+
+            let mapWasInitialized = false;
         }
+
         return;
     }
 
-    /** Verifica se a célula é parede, faz parte do painel lateral ou está fora da tela. */
     function boolean isWall(int col, int row) {
         var String line;
-        if ((col < 0) | (col > 31) | (row < 0) | (row > 15)) { return true; }
-        let line = rows[row];               // Jack não permite rows[row].charAt(...)
-        return line.charAt(col) = 35;
+
+        if ((col < 0) | (col > Constant.MAP_LAST_COLUMN()) | (row < 0) | (row > Constant.MAP_LAST_ROW())) { 
+            return true; 
+        }
+
+        let line = rows[row];
+
+        return line.charAt(col) = Constant.WALL_CHAR();
     }
 
-    /** Desenha as paredes da área de jogo (colunas 9..31). É para chamar depois de Screen.clearScreen(). */
+    /**
+    * Desenha as paredes da área de jogo, da coluna MAP_PLAYABLE_START_COLUMN()
+    * até MAP_LAST_COLUMN(). Deve ser chamado depois de Screen.clearScreen().
+    */
     function void draw() {
-        var int r, c;
+        var int row, col;
         var String line;
-        let r = 0;
-        while (r < 16) {
-            let line = rows[r];
-            let c = 9;
-            while (c < 32) {
-                if (line.charAt(c) = 35) { do Map.drawWall(c, r); }
-                let c = c + 1;
+
+        let row = 0;
+
+        while (row < Constant.MAP_ROWS()) {
+            let line = rows[row];
+            let col = Constant.MAP_PLAYABLE_START_COLUMN();
+            
+            while (col < (Constant.MAP_LAST_COLUMN() + 1)) {
+                if (line.charAt(col) = Constant.WALL_CHAR()) { 
+                    do Map.drawWall(col, row); 
+                }
+                
+                let col = col + 1;
             }
-            let r = r + 1;
+
+            let row = row + 1;
         }
+
         return;
     }
 
     function void drawWall(int col, int row) {
         var int addr, i;
-        let addr = 16384 + (row * 512) + col;   // 16 linhas de pixels * 32 palavras = 512 por linha de células
+
+        let addr = 16384 + (row * 512) + col; 
         let i = 0;
-        while (i < 16) {
-            do Memory.poke(addr + (i * 32), -1);
+        
+        while (i < Constant.SPRITE_SIZE()) {
+            do Memory.poke(addr + (i * Constant.SCREEN_WIDTH_IN_WORDS()), -1);
+
             let i = i + 1;
         }
+        
         return;
     }
 
     /**
      * Célula livre aleatória da área de jogo (nunca parede, nunca o painel lateral),
-     * codificada como linha*32 + coluna. Tem que usar colOf/rowOf/xOf/yOf para decodificar.
+     * codificada como linha * (MAP_LAST_COLUMN() + 1) + coluna.
+     * Use colOf(), rowOf(), xOf() e yOf() para decodificar.
      */
     function int randomFreeCell() {
-        var int c, r;
-        // randRange(n) devolve 0..n (inclusive): colunas 9..31 e linhas 0..15
-        let c = 9 + rnd.randRange(22);
-        let r = rnd.randRange(15);
-        while (Map.isWall(c, r)) {
-            let c = 9 + rnd.randRange(22);
-            let r = rnd.randRange(15);
+        var int col, row;
+
+        // Sorteia uma coluna da área jogável e uma linha do mapa.
+        // randRange(n) inclui os dois extremos: 0 e n.
+        let col = Constant.MAP_PLAYABLE_START_COLUMN() + random.randRange(Constant.MAP_PLAYABLE_MAX_OFFSET());
+        let row = random.randRange(Constant.MAP_LAST_ROW());
+
+        while (Map.isWall(col, row)) {
+            let col = Constant.MAP_PLAYABLE_START_COLUMN() + random.randRange(Constant.MAP_PLAYABLE_MAX_OFFSET());
+            let row = random.randRange(Constant.MAP_LAST_ROW());
         }
-        return (r * 32) + c;
+
+        return (row * (Constant.MAP_LAST_COLUMN() + 1)) + col;
     }
 
-    /** Distância de Manhattan, em células, entre duas células codificadas. */
-    function int distance(int cellA, int cellB) {
-        return Math.abs(Map.colOf(cellA) - Map.colOf(cellB)) + Math.abs(Map.rowOf(cellA) - Map.rowOf(cellB));
+    function int colOf(int cell) { 
+        return cell & Constant.MAP_LAST_COLUMN(); 
+    }
+    
+    function int rowOf(int cell) { 
+        return cell / (Constant.MAP_LAST_COLUMN() + 1); 
     }
 
-    /**
-     * Célula livre aleatória a uma distância de Manhattan >= minDist (em células) de 'from', e
-     * nunca a mesma célula. Se não achar uma em 40 tentativas, diminui minDist em 1, então
-     * sempre termina.
-     */
-    function int randomFarCell(int from, int minDist) {
-        var int cell, tries;
-        if (minDist < 1) { let minDist = 1; }     // 0 permitiria a mesma célula
-        let tries = 0;
-        let cell = Map.randomFreeCell();
-        while (Map.distance(cell, from) < minDist) {
-            let tries = tries + 1;
-            if ((tries > 40) & (minDist > 1)) {
-                let minDist = minDist - 1;
-                let tries = 0;
-            }
-            let cell = Map.randomFreeCell();
-        }
-        return cell;
-    }
-
-    /**
-     * Uma semente nova para a PRÓXIMA partida, para que cada reinício tenha posições
-     * diferentes: chame Map.init(seed) de novo com esse valor.
-     */
-    function int nextSeed() {
-        return rnd.rand();
-    }
-
-    function int colOf(int cell) { return cell & 31; }
-    function int rowOf(int cell) { return cell / 32; }
-    function int xOf(int cell)   { return (cell & 31) * 16; }   // x em pixels, para Ghost/Person.new
-    function int yOf(int cell)   { return (cell / 32) * 16; }   // y em pixels, para Ghost/Person.new
+    function int xOf(int cell) { 
+        return Map.colOf(cell) * Constant.SPRITE_SIZE();
+    }   // x em pixels, para Ghost/Person.new
+    
+    function int yOf(int cell) { 
+        return Map.rowOf(cell) * Constant.SPRITE_SIZE(); 
+    }   // y em pixels, para Ghost/Person.new
 }
