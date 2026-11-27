@@ -28,12 +28,17 @@ class Hud {
     }
 
     function void drawTimer(String gameStatus, int secs) {
+        // Aloca o rótulo só na primeira chamada e reaproveita nas seguintes
+        if (timerLabel = null) {
+            let timerLabel = "TIMER: ";
+        }
+
         do Hud.clearTimer();
 
         do Output.moveCursor(3, 3);
         do Output.printString(gameStatus);
         do Output.moveCursor(5, 3);
-        do Output.printString("TIMER: ");
+        do Output.printString(timerLabel);
         do Output.moveCursor(5, 10);
         do Output.printInt(secs);
 
